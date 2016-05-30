@@ -99,8 +99,15 @@ void CThreadedSockets::recvData()
 		// Set STATE_IDLE only if the connection is closed or error or someone else didnot change to otherstate 
 		if((ret <= 0) && (State == STATE_READ))
 			State = STATE_IDLE;
+		
 		// Therefore, the call back is triggered until the Data is completely extracted from the socket
-		printf( "in CThreSocks::recvData, ExecuteForward returned %d with fid %d\n", MF_ExecuteForward(fIDs[FID_RECV], (cell)STATE_READ, (cell)ret, szRecvData, (cell)iRecvDatalen), fIDs[FID_RECV]);
+		int retVal = MF_ExecuteForward(fIDs[FID_RECV], (cell)STATE_READ, (cell)ret, szRecvData, (cell)iRecvDatalen);
+
+		// Now for dynamically changing buffer length...
+		if( retVal > 0 )
+			iRecvDatalen = retVal;
+		
+		printf( "in CThreSocks::recvData, ExecuteForward returned %d with fid %d\n", retVal, fIDs[FID_RECV]);
 	}	
 }
 
