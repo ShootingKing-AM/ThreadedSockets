@@ -167,7 +167,8 @@ native socket_send_t( const iThreadHandle, const szData[], const iDataLen, const
  * @param szRecvData[]				A null-terminated string containing the recieved data.
  * @param iRecvDataLen				The length requested by plugin to be read. Actual RecvDataLen may be less than requested. 
  * 								This is the same length passed to the native.
- * 
+ * @return						If a number greater than 0 is returned by callback, iRecvDataLen is dynamically set to that number.
+ *
  * @note ThreadState is set to STATE_IDLE, only when the connection is closed or on error, before CallBack. Therefore the CallBack may
  * be called more than one time passing blocks of szRecvData with length less than or equeal to iRecvDataLen.
  * 
