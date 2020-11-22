@@ -1,0 +1,248 @@
+version: 0.2-beta_{build}
+pull_requests:
+  do_not_increment_build_number: true
+branches:
+  only:
+  - main
+
+skip_tags: true
+
+max_jobs: 2
+
+environment:
+  APPVEYOR_PVR_TAG: 'v1.2'
+  
+  GITHUB_USERNAME: "ShootingKing-AM"
+  
+  APPVEYOR_GITHUB_TOKEN:
+    secure: LHFaEeGFp9XsG6gjw8+pGVS0zKO79rNvZPALuHcDAsP886KA/wYf/WJNuL6nKEj5
+
+  APPVEYOR_API_TOKEN:
+    secure: pDVnsOqWnupLrKTbz/iZlZt6CkSTZVUMtXqTlp5tgHI=
+
+  matrix:
+
+  - job_name: Windows Release
+    appveyor_build_worker_image: Visual Studio 2017
+    configuration: Debug
+    platform: Win32
+    job_group: Build
+
+  - job_name: Windows Debug
+    appveyor_build_worker_image: Visual Studio 2017
+    configuration: Debug
+    platform: Win32
+    job_group: Build
+
+  - job_name: Linux Release
+    appveyor_build_worker_image: Ubuntu
+    configuration: Debug
+    job_group: Build
+
+  - job_name: Linux Debug
+    appveyor_build_worker_image: Ubuntu
+    configuration: Debug
+    job_group: Build
+
+  - job_name: Deploy
+    job_depends_on: Build
+
+for:
+
+  -
+    matrix:
+      only:
+        - job_name: Windows Release
+
+    build_script:
+    - cmd: msbuild "msvc12\sockets.sln" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    artifacts:
+    - path: msvc12\Release\sockets_amxx.dll
+      name: ThreadedSocketsWinRelease
+      type: file
+
+  -
+    matrix:
+      only:
+        - job_name: Windows Debug
+
+    build_script:
+    - cmd: msbuild "DebugProject\msvc12\sockets.sln" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    artifacts:
+    - path: DebugProject\msvc12\Debug\sockets_amxx.dll
+      name: ThreadedSocketsWinDebug
+      type: file
+
+  -
+    matrix:
+      only:
+        - job_name: Linux Release
+
+    build_script:
+    - sh: >-
+        sudo apt-get -y install gcc-multilib g++-multilib
+        
+        make
+
+    after_build:
+    - sh: tree -a
+
+    artifacts:
+    - path: Debug\sockets_amxx_i386.so
+      name: ThreadedSocketsLinuxRelease
+      type: file
+
+  -
+    matrix:
+      only:
+        - job_name: Linux Debug
+
+    build_script:
+    - sh: >-
+        sudo apt-get -y install gcc-multilib g++-multilib
+        
+        cd DebugProject
+        
+        make
+
+    after_build:
+    - sh: tree -a
+
+    artifacts:
+    - path: DebugProject\Debug\sockets_amxx_i386.so
+      name: ThreadedSocketsLinuxDebug
+      type: file
+
+  -
+    matrix:
+      only:
+        - job_name: Deploy
+
+    build_script:
+    - cmd : echo "Waiting for Builds .."
+
+    after_build:
+    - ps: >-
+        mkdir artifact\ThreadedSocketsRelease
+        
+        mkdir artifact\ThreadedSocketsDebug
+        
+        $apiUrl = 'https://ci.appveyor.com/api'
+        
+        $token = $env:APPVEYOR_API_TOKEN
+        
+        $headers = @{ "Authorization" = "Bearer $token"; "Content-type" = "application/json" }
+        
+        $accountName = $env:GITHUB_USERNAME
+        
+        $projectSlug = $env:APPVEYOR_PROJECT_SLUG
+        
+        $project = Invoke-RestMethod -Method Get -Uri "$apiUrl/projects/$accountName/$projectSlug" -Headers $headers
+        
+        $jobWinReleaseId = $project.build.jobs[0].jobId
+        
+        $jobWinDebugId = $project.build.jobs[1].jobId
+        
+        $jobLinReleaseId = $project.build.jobs[2].jobId
+        
+        $jobLinDebugId = $project.build.jobs[3].jobId
+        
+        if( $project.build.jobs[0].artifactsCount -gt 0 )
+        {
+            $artifacts = Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobWinReleaseId/artifacts" -Headers $headers
+            
+            $artifactFileName = $artifacts[0].fileName
+            
+            Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobWinReleaseId/artifacts/$artifactFileName" -OutFile artifact\ThreadedSocketsRelease\sockets_amxx.dll -Headers @{ "Authorization" = "Bearer $token" }
+            
+        }
+        
+        if( $project.build.jobs[1].artifactsCount -gt 0 )
+        {
+            $artifacts = Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobWinDebugId/artifacts" -Headers $headers
+            
+            $artifactFileName = $artifacts[0].fileName
+            
+            Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobWinDebugId/artifacts/$artifactFileName" -OutFile artifact\ThreadedSocketsDebug\sockets_amxx.dll -Headers @{ "Authorization" = "Bearer $token" }
+            
+        }
+        
+        if( $project.build.jobs[2].artifactsCount -gt 0 )
+        {
+            $artifacts = Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobLinReleaseId/artifacts" -Headers $headers
+            
+            $artifactFileName = $artifacts[0].fileName
+            
+            Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobLinReleaseId/artifacts/$artifactFileName" -OutFile artifact\ThreadedSocketsRelease\sockets_amxx_i386.so -Headers @{ "Authorization" = "Bearer $token" }
+            
+        }
+        
+        if( $project.build.jobs[3].artifactsCount -gt 0 )
+        {
+            $artifacts = Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobLinDebugId/artifacts" -Headers $headers
+            
+            $artifactFileName = $artifacts[0].fileName
+            
+            Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobLinDebugId/artifacts/$artifactFileName" -OutFile artifact\ThreadedSocketsDebug\sockets_amxx_i386.so -Headers @{ "Authorization" = "Bearer $token" }
+            
+        }
+
+    artifacts:
+      path: artifact
+      name: ThreadedSockets-$(APPVEYOR_PVR_TAG)_$(APPVEYOR_BUILD_NUMBER)-$(APPVEYOR_REPO_BRANCH)
+      type: WebDeployPackage
+
+    before_deploy:
+    - ps: >-    
+          
+          $token = "token " + $env:APPVEYOR_GITHUB_TOKEN
+          
+          $releaseUrl = "https://api.github.com/repos/$env:GITHUB_USERNAME/$env:APPVEYOR_PROJECT_NAME/releases"
+          
+          $releaseLatestUrl = "https://api.github.com/repos/$env:GITHUB_USERNAME/$env:APPVEYOR_PROJECT_NAME/releases/latest"
+          
+          $releasebyTag =  $releaseUrl+"/tags/"+$env:APPVEYOR_PVR_TAG
+          
+          $Releases = curl -H @{"Authorization" = $token} -Method GET $releaseUrl | ConvertFrom-Json
+          
+          $env:PEV_RELEASE_BODY = " "
+          
+          if(-not (Test-Path env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)) { $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED = " " }
+          
+          if($Releases)
+          {
+              foreach( $tagName in $Releases.tag_name )
+              {
+                  if( $tagName -eq $env:APPVEYOR_PVR_TAG )
+                  {
+                      $TaggedRelease = curl -H @{"Authorization" = $token} -Method GET $releasebyTag | ConvertFrom-Json
+                      if($TaggedRelease.assets.length -gt 0)
+                      {
+                          $env:PEV_RELEASE_BODY = $TaggedRelease.body
+                          
+                          if( $env:PEV_RELEASE_BODY -match "Changelog - ((.|\n)*)" )
+                          {
+                              $env:PEV_RELEASE_BODY = $matches[1]
+                          }
+                          
+                          $deleteUrl = $releaseUrl+"/"+$TaggedRelease.id
+                          
+                          curl -H @{"Authorization" = $token} -Method DELETE $deleteUrl | ConvertFrom-Json
+                      }
+                  }
+              }
+          }
+
+    deploy:
+    - provider: GitHub
+      tag: $(APPVEYOR_PVR_TAG)
+      release: ThreadedSockets-$(APPVEYOR_PVR_TAG)_$(APPVEYOR_BUILD_NUMBER)
+      description: AppVeyor build\nBranch - $(APPVEYOR_REPO_BRANCH)\nOn Commit - $(APPVEYOR_REPO_COMMIT)\nDate - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)\n\n\n Changelog - \n$(APPVEYOR_REPO_COMMIT) `Build_$(APPVEYOR_BUILD_NUMBER)` - $(APPVEYOR_REPO_COMMIT_MESSAGE) \n$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED) \n$(PEV_RELEASE_BODY)
+      auth_token: $(APPVEYOR_GITHUB_TOKEN)
+      artifact: /.*/
+      force_update: true
+      on:
+        branch: main
+
