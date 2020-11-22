@@ -3,7 +3,7 @@ pull_requests:
   do_not_increment_build_number: true
 branches:
   only:
-  - main
+  - master
 
 skip_tags: true
 
@@ -244,5 +244,5 @@ for:
       artifact: /.*/
       force_update: true
       on:
-        branch: main
+        branch: master
 
