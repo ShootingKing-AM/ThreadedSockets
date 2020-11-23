@@ -1,4 +1,6 @@
 ## ThreadedSockets
+[![Build status](https://ci.appveyor.com/api/projects/status/6osm6hogjo6jtci9/branch/master?svg=true)](https://ci.appveyor.com/project/ShootingKing-AM/threadedsockets/branch/master)
+
 This module is a modification of Default Amxx Sockets module, implementing option for performing threaded socket operations. This Module also include changes done in Sockets2(Bugsy) and Socket_hz in a threaded mode. This module eliminates looping, hidden looping, entity thinks in plugin as well as in the main thread.
 
 #### Downloads
