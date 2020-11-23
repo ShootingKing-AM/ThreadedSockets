@@ -24,7 +24,7 @@ OBJECTS = sdk/amxxmodule.cpp sockets.cpp CSocket.cpp CThreadedSockets.cpp CThrea
 C_OPT_FLAGS = -DNDEBUG -O2 -funroll-loops -fomit-frame-pointer -pipe
 C_DEBUG_FLAGS = -D_DEBUG -DDEBUG -g -ggdb3
 C_GCC4_FLAGS = -fvisibility=hidden
-CPP_GCC4_FLAGS = -fvisibility-inlines-hidden -pthread
+CPP_GCC4_FLAGS = -fvisibility-inlines-hidden
 CPP = gcc
 CPP_OSX = clang
 
@@ -102,7 +102,7 @@ OBJ_BIN := $(OBJECTS:%.cpp=$(BIN_DIR)/%.o)
 MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
 $(BIN_DIR)/%.o: %.cpp
-	$(CPP) $(INCLUDE) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
+	$(CPP) $(INCLUDE) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< -lpthread
 
 
 all:
@@ -111,7 +111,7 @@ all:
 	$(MAKE) -f $(MAKEFILE_NAME) $(PROJECT)
 
 $(PROJECT): $(OBJ_BIN)
-	$(CPP) $(INCLUDE) $(OBJ_BIN) $(LINK) -o $(BIN_DIR)/$(BINARY)
+	$(CPP) $(INCLUDE) $(OBJ_BIN) $(LINK) -o $(BIN_DIR)/$(BINARY) -lpthread
 
 debug:
 	$(MAKE) -f $(MAKEFILE_NAME) all DEBUG=true
