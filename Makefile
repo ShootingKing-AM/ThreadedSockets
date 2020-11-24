@@ -52,13 +52,13 @@ else
 	LINK += -shared
 endif
 
-LINK += -m32 -lm -ldl
+LINK += -m32 -lm -ldl -lpthread
 
 CFLAGS += -DPAWN_CELL_SIZE=32 -DJIT -DASM32 -DHAVE_STDINT_H -fno-strict-aliasing -m32 -Wall -Werror
 CPPFLAGS += -fno-exceptions -fno-rtti
 
 BINARY = $(PROJECT)$(LIB_SUFFIX).$(LIB_EXT)
-DEBUG = true
+DEBUG = false
 ifeq "$(DEBUG)" "true"
 	BIN_DIR = Debug
 	CFLAGS += $(C_DEBUG_FLAGS)

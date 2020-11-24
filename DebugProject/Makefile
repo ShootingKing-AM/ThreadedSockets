@@ -52,7 +52,7 @@ else
 	LINK += -shared
 endif
 
-LINK += -m32 -lm -ldl
+LINK += -m32 -lm -ldl -lpthread
 
 CFLAGS += -DPAWN_CELL_SIZE=32 -DJIT -DASM32 -DHAVE_STDINT_H -fno-strict-aliasing -m32 -Wall -Werror
 CPPFLAGS += -fno-exceptions -fno-rtti

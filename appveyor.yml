@@ -90,7 +90,7 @@ for:
     - sh: tree -a
 
     artifacts:
-    - path: Debug\sockets_amxx_i386.so
+    - path: Release\sockets_amxx_i386.so
       name: ThreadedSocketsLinuxRelease
       type: file
 
