@@ -82,7 +82,11 @@ for:
 
     build_script:
     - sh: >-
-        sudo apt-get -y install gcc-multilib g++-multilib
+        sudo apt-get -y --purge remove gcc
+        
+        sudo apt-get -y --purge remove g++
+        
+        sudo apt-get -y install gcc-5-multilib g++-5-multilib
         
         make
 
@@ -101,7 +105,11 @@ for:
 
     build_script:
     - sh: >-
-        sudo apt-get -y install gcc-multilib g++-multilib
+        sudo apt-get -y --purge remove gcc
+        
+        sudo apt-get -y --purge remove g++
+        
+        sudo apt-get -y install gcc-5-multilib g++-5-multilib
         
         cd DebugProject
         
