@@ -82,7 +82,17 @@ for:
 
     build_script:
     - sh: >-
-        sudo apt-get -y install gcc-multilib g++-multilib
+        sudo apt-get -y --purge remove gcc
+        
+        sudo apt-get -y --purge remove g++
+        
+        sudo apt-get -y install ia32-libs
+        
+        sudo apt-get -y install lib32z1 lib32z1-dev
+        
+        sudo apt-get -y install libc6-dev-i386 libc6-i386
+        
+        sudo apt-get -y install gcc-5-multilib g++-5-multilib
         
         make
 
@@ -101,7 +111,17 @@ for:
 
     build_script:
     - sh: >-
-        sudo apt-get -y install gcc-multilib g++-multilib
+        sudo apt-get -y --purge remove gcc
+        
+        sudo apt-get -y --purge remove g++
+        
+        sudo apt-get -y install ia32-libs
+        
+        sudo apt-get -y install lib32z1 lib32z1-dev
+        
+        sudo apt-get -y install libc6-dev-i386 libc6-i386
+        
+        sudo apt-get -y install gcc-5-multilib g++-5-multilib
         
         cd DebugProject
         
